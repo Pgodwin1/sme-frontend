@@ -38,7 +38,7 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
-          <a href="/login" className="font-body text-sm text-ink-600 hover:text-ink">
+          <a href="/auth/login" className="font-body text-sm text-ink-600 hover:text-ink">
             Log in
           </a>
           <LinkButton href="/onboarding" variant="primary" className="px-4 py-2 text-sm">
@@ -78,7 +78,7 @@ export function Header() {
               </a>
             ))}
             <a
-              href="/login"
+              href="/auth/login"
               onClick={() => setOpen(false)}
               className="rounded px-2 py-2.5 font-body text-sm text-ink-600 hover:bg-ink/5 hover:text-ink"
             >
