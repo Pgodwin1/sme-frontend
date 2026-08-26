@@ -3,13 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { navItems } from "@/components/app/Sidebar";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/config/routes";
 import type { ModuleKey } from "@/data/modules";
 
 export function Topbar({ modules }: { modules: ModuleKey[] }) {
-  const { account, logout } = useAuth();
+  const account = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -20,7 +22,7 @@ export function Topbar({ modules }: { modules: ModuleKey[] }) {
 
   function handleLogout() {
     logout();
-    router.push("/login");
+    router.push(ROUTES.LOGIN);
   }
 
   return (

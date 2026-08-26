@@ -8,7 +8,7 @@ import { Field, Input } from "@/components/ui/Form";
 import { Button } from "@/components/ui/Button";
 import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useLogin } from "./api";
+import { useLogin, toAuthUser } from "./api";
 import { useToast } from "@/components/ui/Toast";
 
 const loginSchema = z.object({
@@ -40,11 +40,10 @@ export const LoginPage = () => {
 		onSuccess: (data) => {
 			setAuth({
 				token: data.token,
-				refreshToken: data.refreshToken ?? null,
-				user: data.user,
-				entityId: (data.user?.entityId as string | undefined) ?? null,
+				refreshToken: null,
+				user: toAuthUser(data),
 			});
-			router.push(ROUTES.ONBOARDING);
+			router.push(ROUTES.DASHBOARD);
 		},
 		onError: (loginError) => {
 			showToast(loginError.message);
@@ -52,12 +51,6 @@ export const LoginPage = () => {
 	});
 
 	const onSubmit = (values: LoginFormValues) => {
-		if (process.env.NODE_ENV === "development") {
-			console.info("[Auth] Login form passed client validation; starting mutation.", {
-				emailProvided: Boolean(values.email),
-				passwordProvided: Boolean(values.password),
-			});
-		}
 		loginMutate(values);
 	};
 

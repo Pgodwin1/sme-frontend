@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/lib/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { PageHeader } from "@/components/app/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { RevenueChart } from "@/components/app/RevenueChart";
@@ -13,7 +13,7 @@ import { initialProducts } from "@/data/inventory";
 import { formatNaira } from "@/data/pricing";
 
 export default function DashboardHomePage() {
-  const { account } = useAuth();
+  const account = useAuthStore((s) => s.user);
   const modules = account?.modules ?? [];
 
   const activeEmployees = initialEmployees.filter((e) => e.status === "Active");

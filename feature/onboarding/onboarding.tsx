@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Form";
 import { ModuleSwitch } from "@/components/ui/ModuleSwitch";
 import { Container } from "@/components/ui/Container";
 import { modules as allModules, mvpModules, type ModuleKey } from "@/data/modules";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/config/routes";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRegister, toAuthUser } from "@/feature/auth/api";
 
 const industries = [
 	"Retail", "Pharmacy", "Hospitality", "Education", "Construction",
@@ -21,13 +23,13 @@ const steps = ["Business", "Account", "Modules", "Review"] as const;
 
 export default function OnboardingPage() {
 	const router = useRouter();
-	const { signup } = useAuth();
+	const setAuth = useAuthStore((s) => s.setAuth);
 	const [step, setStep] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 
 	const [businessName, setBusinessName] = useState("");
-	const [industry, setIndustry] = useState(industries[0]);
-	const [size, setSize] = useState(sizes[0]);
+	const [industry, setIndustry] = useState<string>(industries[0] ?? "");
+	const [size, setSize] = useState<string>(sizes[0] ?? "");
 
 	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
@@ -65,8 +67,27 @@ export default function OnboardingPage() {
 		setStep((s) => Math.max(s - 1, 0));
 	}
 
+	const {
+		mutate: registerMutate,
+		isPending,
+	} = useRegister({
+		onSuccess: (data) => {
+			setAuth({
+				token: data.token,
+				refreshToken: null,
+				user: toAuthUser(data),
+				entityId: null,
+			});
+			router.push(ROUTES.DASHBOARD);
+		},
+		onError: (registerError) => {
+			setError(registerError.message);
+		},
+	});
+
 	function finish() {
-		signup({
+		setError(null);
+		registerMutate({
 			businessName,
 			industry,
 			size,
@@ -75,7 +96,6 @@ export default function OnboardingPage() {
 			password,
 			modules: selectedModules,
 		});
-		router.push("/dashboard");
 	}
 
 	return (
@@ -214,7 +234,9 @@ export default function OnboardingPage() {
 							{step < steps.length - 1 ? (
 								<Button type="button" onClick={next}>Continue</Button>
 							) : (
-								<Button type="button" onClick={finish}>Finish setup</Button>
+								<Button type="button" onClick={finish} disabled={isPending}>
+									{isPending ? "Setting up..." : "Finish setup"}
+								</Button>
 							)}
 						</div>
 					</div>

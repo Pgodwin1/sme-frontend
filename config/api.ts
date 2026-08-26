@@ -10,12 +10,6 @@ export const apiClient = axios.create({
 
 // Attach auth token automatically on every request
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-	if (process.env.NODE_ENV === "development") {
-		console.info("[API] Request started.", {
-			method: config.method?.toUpperCase(),
-			url: `${config.baseURL ?? ""}${config.url ?? ""}`,
-		});
-	}
 
 	const token = useAuthStore.getState().token;
   if (token) {
@@ -29,13 +23,6 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // err.response?.data?.message vs err.message vs a network failure.
 apiClient.interceptors.response.use(
   (response) => {
-    if (process.env.NODE_ENV === "development") {
-      console.info("[API] Request succeeded.", {
-        method: response.config.method?.toUpperCase(),
-        url: `${response.config.baseURL ?? ""}${response.config.url ?? ""}`,
-        status: response.status,
-      });
-    }
     return response;
   },
   (error: AxiosError<any>) => {
@@ -50,14 +37,6 @@ apiClient.interceptors.response.use(
       fieldErrors: error.response?.data?.errors ?? null, // e.g. Zod/validation field errors from backend
       raw: error,
     };
-    if (process.env.NODE_ENV === "development") {
-      console.error("[API] Request failed.", {
-        method: error.config?.method?.toUpperCase(),
-        url: `${error.config?.baseURL ?? ""}${error.config?.url ?? ""}`,
-        status: normalized.status,
-        message: normalized.message,
-      });
-    }
     return Promise.reject(normalized);
   },
 );

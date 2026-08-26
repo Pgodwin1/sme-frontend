@@ -2,21 +2,25 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Sidebar } from "@/components/app/Sidebar";
 import { Topbar } from "@/components/app/Topbar";
+import { ROUTES } from "@/config/routes";
+import type { ModuleKey } from "@/data/modules";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { account, isAuthenticated, loading } = useAuth();
+  const user = useAuthStore((s) => s.user);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.replace("/login");
+    if (hasHydrated && !isAuthenticated) {
+      router.replace(ROUTES.LOGIN);
     }
-  }, [loading, isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
 
-  if (loading) {
+  if (!hasHydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-paper">
         <p className="font-mono text-xs uppercase tracking-widest text-ink-400">
@@ -26,15 +30,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!isAuthenticated || !account) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 
+  const modules = (user.modules ?? []) as ModuleKey[];
+
   return (
     <div className="flex min-h-screen bg-paper">
-      <Sidebar modules={account.modules} />
+      <Sidebar modules={modules} />
       <div className="flex min-h-screen flex-1 flex-col">
-        <Topbar modules={account.modules} />
+        <Topbar modules={modules} />
         <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
       </div>
     </div>
