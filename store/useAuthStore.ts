@@ -6,6 +6,11 @@ export interface AuthUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
+  businessName?: string;
+  industry?: string;
+  size?: string;
+  modules?: string[];
   [key: string]: unknown;
 }
 

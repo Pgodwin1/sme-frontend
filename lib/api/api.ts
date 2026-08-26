@@ -33,7 +33,9 @@ async function request<T = unknown>(
     } as apiError;
   }
 
-  return response.data as T;
+  // Unwrap the { success, data } envelope — endpoints that only return a
+  // message (no `data`) fall back to the envelope itself.
+  return (response.data?.data !== undefined ? response.data.data : response.data) as T;
 }
 
 export const api = {
