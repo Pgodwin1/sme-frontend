@@ -2,11 +2,21 @@ import { apiClient } from "@/config/api";
 import { apiError } from "@/types/api";
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { api } from "@/lib/api/api";
-import type { AuthUser } from "@/store/useAuthStore";
 
 export interface LoginPayload {
   email: string;
   password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  refreshToken?: string | null;
+  user: {
+    id: string;
+    email: string;
+    entityId?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface RegisterPayload {
@@ -19,31 +29,15 @@ export interface RegisterPayload {
   modules: string[];
 }
 
-// The backend returns the user record flat (no `user` wrapper, no
-// `refreshToken`) — same shape for both /login and /register, since both
-// resolve to UserController's UserWithModules response.
-export interface AuthUserResponse {
-  _id: string;
-  fullName: string;
-  email: string;
-  businessName?: string;
-  industry?: string;
-  size?: string;
-  role?: string;
-  isOnboarded?: boolean;
+export interface RegisterResponse {
   token: string;
-  modules: string[];
-  createdAt?: string;
-  updatedAt?: string;
-  [key: string]: unknown;
-}
-
-export type LoginResponse = AuthUserResponse;
-export type RegisterResponse = AuthUserResponse;
-
-// Maps the backend's flat user record (`_id`) onto the auth store's shape (`id`).
-export function toAuthUser({ _id, ...rest }: AuthUserResponse): AuthUser {
-  return { id: _id, ...rest };
+  refreshToken?: string | null;
+  user: {
+    id: string;
+    email: string;
+    entityId?: string;
+    [key: string]: unknown;
+  };
 }
 
 // Note: renamed from the earlier `register()` to `useRegister()` — hooks must
@@ -70,6 +64,88 @@ export function useLogin(
   return useMutation({
     mutationFn: (data: LoginPayload) =>
       api.post<LoginResponse>("/login", data, undefined, "Login failed."),
+    ...options,
+  });
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message?: string;
+}
+
+// Requests a password reset OTP by email.
+export function useForgotPassword(
+  options?: UseMutationOptions<
+    ForgotPasswordResponse,
+    apiError,
+    ForgotPasswordPayload
+  >,
+) {
+  return useMutation({
+    mutationFn: (data: ForgotPasswordPayload) =>
+      api.post<ForgotPasswordResponse>(
+        "/forgot-password",
+        data,
+        undefined,
+        "Could not send reset code. Please try again.",
+      ),
+    ...options,
+  });
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  resetToken: string;
+}
+
+// Verifies the OTP sent for password reset; returns a short-lived reset token.
+export function useVerifyOtp(
+  options?: UseMutationOptions<VerifyOtpResponse, apiError, VerifyOtpPayload>,
+) {
+  return useMutation({
+    mutationFn: (data: VerifyOtpPayload) =>
+      api.post<VerifyOtpResponse>(
+        "/verify-otp",
+        data,
+        undefined,
+        "Invalid or expired code. Please try again.",
+      ),
+    ...options,
+  });
+}
+
+export interface ResetPasswordPayload {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  message?: string;
+}
+
+// Resets the password using the verified reset token from useVerifyOtp.
+export function useResetPassword(
+  options?: UseMutationOptions<
+    ResetPasswordResponse,
+    apiError,
+    ResetPasswordPayload
+  >,
+) {
+  return useMutation({
+    mutationFn: (data: ResetPasswordPayload) =>
+      api.post<ResetPasswordResponse>(
+        "/reset-password",
+        data,
+        undefined,
+        "Could not reset password. Please try again.",
+      ),
     ...options,
   });
 }
