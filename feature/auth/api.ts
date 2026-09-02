@@ -2,22 +2,25 @@ import { apiClient } from "@/config/api";
 import { apiError } from "@/types/api";
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { api } from "@/lib/api/api";
+import type { AuthUser } from "@/store/useAuthStore";
 
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
-export interface LoginResponse {
+export interface AuthApiUser {
+  _id: string;
+  email: string;
+  fullName?: string;
   token: string;
   refreshToken?: string | null;
-  user: {
-    id: string;
-    email: string;
-    entityId?: string;
-    [key: string]: unknown;
-  };
+  entityId?: string;
+  [key: string]: unknown;
 }
+
+export type LoginResponse = AuthApiUser;
+
 
 export interface RegisterPayload {
   businessName: string;
@@ -29,17 +32,22 @@ export interface RegisterPayload {
   modules: string[];
 }
 
-export interface RegisterResponse {
-  token: string;
-  refreshToken?: string | null;
-  user: {
-    id: string;
-    email: string;
-    entityId?: string;
-    [key: string]: unknown;
+export type RegisterResponse = AuthApiUser;
+
+// Converts the backend's flat user shape (_id, fullName) into the AuthUser
+// shape the auth store expects (id, firstName, lastName).
+export function toAuthUser(data: AuthApiUser): AuthUser {
+  const fullName = (data.fullName ?? "").trim();
+  const [firstName, ...rest] = fullName ? fullName.split(/\s+/) : [];
+
+  return {
+    ...data,
+    id: data._id,
+    email: data.email,
+    firstName: firstName || undefined,
+    lastName: rest.length ? rest.join(" ") : undefined,
   };
 }
-
 // Note: renamed from the earlier `register()` to `useRegister()` — hooks must
 // start with "use" or the rules-of-hooks eslint rule (and React itself) will
 // flag/mistreat it as a regular function rather than a hook.

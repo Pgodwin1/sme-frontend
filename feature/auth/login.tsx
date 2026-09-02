@@ -40,8 +40,9 @@ export const LoginPage = () => {
 		onSuccess: (data) => {
 			setAuth({
 				token: data.token,
-				refreshToken: null,
+				refreshToken: data.refreshToken ?? null,
 				user: toAuthUser(data),
+				entityId: data.entityId ?? null,
 			});
 			router.push(ROUTES.DASHBOARD);
 		},

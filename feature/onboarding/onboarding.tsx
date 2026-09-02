@@ -72,14 +72,14 @@ export default function OnboardingPage() {
 		isPending,
 	} = useRegister({
 		onSuccess: (data) => {
-			setAuth({
-				token: data.token,
-				refreshToken: null,
-				user: toAuthUser(data),
-				entityId: null,
-			});
-			router.push(ROUTES.DASHBOARD);
-		},
+    setAuth({
+        token: data.token,
+        refreshToken: data.refreshToken ?? null,
+        user: toAuthUser(data),
+        entityId: data.entityId ?? null,
+    });
+    router.push(ROUTES.DASHBOARD);
+},
 		onError: (registerError) => {
 			setError(registerError.message);
 		},
