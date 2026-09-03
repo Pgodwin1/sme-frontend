@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, type SubmitErrorHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +11,7 @@ import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLogin, toAuthUser } from "./api";
 import { useToast } from "@/components/ui/Toast";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
 	email: z.string().min(1, "Email is required").email("Enter a valid email address"),
@@ -22,6 +24,7 @@ export const LoginPage = () => {
 	const router = useRouter();
 	const setAuth = useAuthStore((s) => s.setAuth);
 	const { showToast } = useToast();
+	const [showPassword, setShowPassword] = useState(false);
 
 	const {
 		register,
@@ -89,12 +92,24 @@ export const LoginPage = () => {
 						</Field>
 
 						<Field label="Password" htmlFor="password" error={errors.password?.message}>
-							<Input
-								id="password"
-								type="password"
-								placeholder="Your password"
-								{...register("password")}
-							/>
+							<div className="relative">
+								<Input
+									id="password"
+									type={showPassword ? "text" : "password"}
+									placeholder="Your password"
+									className="pr-10"
+									{...register("password")}
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword((v) => !v)}
+									className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
+									aria-label={showPassword ? "Hide password" : "Show password"}
+									tabIndex={-1}
+								>
+									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+								</button>
+							</div>
 						</Field>
 
 						{error && (

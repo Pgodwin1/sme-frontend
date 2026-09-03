@@ -150,7 +150,7 @@ export const ResetPassword = () => {
 										<button
 											type="button"
 											onClick={() => setShowPassword((v) => !v)}
-											className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200"
+											className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
 											aria-label={showPassword ? "Hide password" : "Show password"}
 											tabIndex={-1}
 										>
@@ -172,7 +172,7 @@ export const ResetPassword = () => {
 										<button
 											type="button"
 											onClick={() => setShowConfirmPassword((v) => !v)}
-											className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200"
+											className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
 											aria-label={showConfirmPassword ? "Hide password" : "Show password"}
 											tabIndex={-1}
 										>

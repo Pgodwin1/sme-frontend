@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES } from "@/config/routes";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRegister, toAuthUser } from "@/feature/auth/api";
+import { Eye, EyeOff } from "lucide-react";
 
 const industries = [
 	"Retail", "Pharmacy", "Hospitality", "Education", "Construction",
@@ -34,6 +35,7 @@ export default function OnboardingPage() {
 	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 
 	const [selectedModules, setSelectedModules] = useState<ModuleKey[]>(
 		mvpModules.map((m) => m.key)
@@ -72,14 +74,14 @@ export default function OnboardingPage() {
 		isPending,
 	} = useRegister({
 		onSuccess: (data) => {
-    setAuth({
-        token: data.token,
-        refreshToken: data.refreshToken ?? null,
-        user: toAuthUser(data),
-        entityId: data.entityId ?? null,
-    });
-    router.push(ROUTES.DASHBOARD);
-},
+			setAuth({
+				token: data.token,
+				refreshToken: data.refreshToken ?? null,
+				user: toAuthUser(data),
+				entityId: data.entityId ?? null,
+			});
+			router.push(ROUTES.DASHBOARD);
+		},
 		onError: (registerError) => {
 			setError(registerError.message);
 		},
@@ -163,7 +165,25 @@ export default function OnboardingPage() {
 									<Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@business.com" />
 								</Field>
 								<Field label="Password" htmlFor="password">
-									<Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
+									<div className="relative">
+										<Input
+											id="password"
+											type={showPassword ? "text" : "password"}
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											placeholder="At least 6 characters"
+											className="pr-10"
+										/>
+										<button
+											type="button"
+											onClick={() => setShowPassword((v) => !v)}
+											className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
+											aria-label={showPassword ? "Hide password" : "Show password"}
+											tabIndex={-1}
+										>
+											{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+										</button>
+									</div>
 								</Field>
 							</div>
 						)}
