@@ -2,71 +2,88 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth";
-import { Container } from "@/components/ui/Container";
 import { Field, Input } from "@/components/ui/Form";
 import { Button } from "@/components/ui/Button";
 import { ROUTES } from "@/config/routes";
+import { useVerifyOtp, useResetPassword } from "./api";
 import { Eye, EyeOff } from "lucide-react";
 
 type Step = "code" | "password";
 
 export const ResetPassword = () => {
-	// const { verifyResetCode, resetPassword } = useAuth();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const email = searchParams.get("email") ?? "";
 
 	const [step, setStep] = useState<Step>("code");
 	const [code, setCode] = useState("");
+	const [resetToken, setResetToken] = useState<string | null>(null);
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [formError, setFormError] = useState<string | null>(null);
 
-	async function handleCodeSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		setError(null);
-		setIsSubmitting(true);
-		try {
-			// const result = await verifyResetCode(email, code);
-			// if (!result.ok) {
-			// 	setError(result.error ?? "Invalid or expired code.");
-			// 	return;
-			// }
+	const {
+		mutate: verifyOtpMutate,
+		isPending: isVerifying,
+		error: verifyError,
+	} = useVerifyOtp({
+		onSuccess: (data) => {
+			setResetToken(data.resetToken);
 			setStep("password");
-		} finally {
-			setIsSubmitting(false);
+		},
+	});
+
+	const {
+		mutate: resetPasswordMutate,
+		isPending: isResetting,
+		error: resetError,
+	} = useResetPassword({
+		onSuccess: () => {
+			router.push(ROUTES.LOGIN);
+		},
+	});
+
+	function handleCodeSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		setFormError(null);
+
+		if (!email) {
+			setFormError("Missing email. Please restart the reset process.");
+			return;
 		}
+		if (code.trim().length < 4) {
+			setFormError("Enter the code we sent to your email.");
+			return;
+		}
+
+		verifyOtpMutate({ email, otp: code.trim() });
 	}
 
-	async function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
+	function handlePasswordSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
-		setError(null);
+		setFormError(null);
 
+		if (!resetToken) {
+			setFormError("Your session expired. Please verify the code again.");
+			setStep("code");
+			return;
+		}
 		if (password.length < 8) {
-			setError("Password must be at least 8 characters.");
+			setFormError("Password must be at least 8 characters.");
 			return;
 		}
 		if (password !== confirmPassword) {
-			setError("Passwords do not match.");
+			setFormError("Passwords do not match.");
 			return;
 		}
 
-		setIsSubmitting(true);
-		try {
-			// const result = await resetPassword(email, code, password);
-			// if (!result.ok) {
-			// 	setError(result.error ?? "Something went wrong. Please try again.");
-			// 	return;
-			// }
-			router.push(ROUTES.LOGIN);
-		} finally {
-			setIsSubmitting(false);
-		}
+		resetPasswordMutate({ resetToken, newPassword: password });
 	}
+
+	const displayedError =
+		formError ?? (step === "code" ? verifyError?.message : resetError?.message) ?? null;
 
 	return (
 		<div className="flex min-h-screen items-center bg-ink-900">
@@ -100,14 +117,14 @@ export const ResetPassword = () => {
 									/>
 								</Field>
 
-								{error && (
+								{displayedError && (
 									<p className="rounded-md border border-amber/40 bg-amber/10 px-3 py-2 font-body text-xs text-amber-light">
-										{error}
+										{displayedError}
 									</p>
 								)}
 
-								<Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
-									{isSubmitting ? "Verifying…" : "Verify code"}
+								<Button type="submit" className="mt-2 w-full" disabled={isVerifying}>
+									{isVerifying ? "Verifying…" : "Verify code"}
 								</Button>
 							</form>
 						</>
@@ -133,13 +150,12 @@ export const ResetPassword = () => {
 										<button
 											type="button"
 											onClick={() => setShowPassword((v) => !v)}
-											className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-200"
+											className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
 											aria-label={showPassword ? "Hide password" : "Show password"}
 											tabIndex={-1}
 										>
 											{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 										</button>
-
 									</div>
 								</Field>
 								<Field label="Confirm password" htmlFor="confirmPassword">
@@ -151,11 +167,12 @@ export const ResetPassword = () => {
 											value={confirmPassword}
 											onChange={(e) => setConfirmPassword(e.target.value)}
 											placeholder="Confirm your password"
+											className="pr-10"
 										/>
 										<button
 											type="button"
 											onClick={() => setShowConfirmPassword((v) => !v)}
-											className="absolute right-0 top-[3px] text-ink-400 hover:text-ink-200"
+											className="absolute inset-y-0 right-3 flex items-center text-ink-400 hover:text-ink-200"
 											aria-label={showConfirmPassword ? "Hide password" : "Show password"}
 											tabIndex={-1}
 										>
@@ -164,14 +181,14 @@ export const ResetPassword = () => {
 									</div>
 								</Field>
 
-								{error && (
+								{displayedError && (
 									<p className="rounded-md border border-amber/40 bg-amber/10 px-3 py-2 font-body text-xs text-amber-light">
-										{error}
+										{displayedError}
 									</p>
 								)}
 
-								<Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
-									{isSubmitting ? "Saving…" : "Reset password"}
+								<Button type="submit" className="mt-2 w-full" disabled={isResetting}>
+									{isResetting ? "Saving…" : "Reset password"}
 								</Button>
 							</form>
 						</>
@@ -185,4 +202,4 @@ export const ResetPassword = () => {
 			</div>
 		</div>
 	);
-}
+};
