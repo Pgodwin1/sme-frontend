@@ -103,7 +103,7 @@ export default function OnboardingPage() {
 	return (
 		<div className="min-h-screen bg-ink-900">
 			<Container className="flex min-h-screen flex-col justify-center py-16">
-				<div className="mx-auto w-full max-w-xl">
+				<div className="mx-auto w-full max-w-2xl">
 					{/* Step indicator */}
 					<div className="mb-8 flex items-center gap-2">
 						{steps.map((label, i) => (
@@ -241,20 +241,22 @@ export default function OnboardingPage() {
 							</p>
 						)}
 
-						<div className="mt-8 flex items-center justify-between">
+						<div className="mt-8 flex items-center gap-2 justify-between">
 							<Button
 								type="button"
 								variant="ghost"
 								onClick={back}
 								disabled={step === 0}
-								className="border-ink-600 text-ink-200 disabled:opacity-30"
+								className="border-ink-600 text-ink-200 disabled:opacity-30 w-full"
 							>
 								Back
 							</Button>
 							{step < steps.length - 1 ? (
-								<Button type="button" onClick={next}>Continue</Button>
+								<Button type="button" onClick={next} className="w-full">
+									Continue
+								</Button>
 							) : (
-								<Button type="button" onClick={finish} disabled={isPending}>
+								<Button type="button" onClick={finish} disabled={isPending} className="w-full">
 									{isPending ? "Setting up..." : "Finish setup"}
 								</Button>
 							)}
