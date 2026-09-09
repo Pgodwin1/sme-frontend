@@ -69,8 +69,8 @@ export const LoginPage = () => {
 
 	return (
 		<div className="flex min-h-screen items-center bg-ink-900">
-			<div className="flex justify-center mx-auto w-full max-w-xl lg:px-8">
-				<div className="w-full max-w-sm p-4 rounded-xl2 border border-ink-600/70 bg-ink-800/80 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+			<div className="flex justify-center mx-auto w-full max-w-2xl lg:px-8">
+				<div className="w-full max-w-xl p-4 rounded-xl2 border border-ink-600/70 bg-ink-800/80 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
 					<div className="mb-6 flex items-center gap-2">
 						<span className="flex h-7 w-7 items-center justify-center rounded bg-amber font-mono text-xs font-bold text-ink-900">
 							OS

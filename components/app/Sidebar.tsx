@@ -4,21 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { ModuleKey } from "@/data/modules";
+import {
+  LayoutDashboard,
+  Package,
+  TrendingUp,
+  Users,
+  Wallet,
+  Contact,
+  type LucideIcon,
+} from "lucide-react";
 
 interface NavItem {
   key: ModuleKey | "dashboard";
   label: string;
   href: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export const navItems: NavItem[] = [
-  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: "▦" },
-  { key: "hr", label: "Employees", href: "/dashboard/employees", icon: "◐" },
-  { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: "₦" },
-  { key: "crm", label: "CRM", href: "/dashboard/crm", icon: "◎" },
-  { key: "sales", label: "Sales", href: "/dashboard/sales", icon: "▲" },
-  { key: "inventory", label: "Inventory", href: "/dashboard/inventory", icon: "▣" },
+  { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { key: "inventory", label: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { key: "sales", label: "Sales", href: "/dashboard/sales", icon: TrendingUp },
+  { key: "hr", label: "Employees", href: "/dashboard/employees", icon: Users },
+  { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: Wallet },
+  { key: "crm", label: "CRM", href: "/dashboard/crm", icon: Contact },
 ];
 
 export function Sidebar({ modules }: { modules: ModuleKey[] }) {
@@ -40,6 +49,7 @@ export function Sidebar({ modules }: { modules: ModuleKey[] }) {
       <nav className="flex-1 space-y-1 px-3 py-6">
         {visibleItems.map((item) => {
           const active = pathname === item.href;
+          const Icon = item.icon;
           return (
             <Link
               key={item.key}
@@ -51,10 +61,13 @@ export function Sidebar({ modules }: { modules: ModuleKey[] }) {
                   : "text-ink-300 hover:bg-ink-800 hover:text-paper"
               )}
             >
-              <span className={cn("font-mono text-sm", active ? "text-amber-light" : "text-ink-400")}>
-                {item.icon}
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                <Icon
+                  className={cn("h-[18px] w-[18px]", active ? "text-amber-light" : "text-ink-400")}
+                  strokeWidth={1.75}
+                />
               </span>
-              {item.label}
+              <span className="leading-none">{item.label}</span>
             </Link>
           );
         })}
