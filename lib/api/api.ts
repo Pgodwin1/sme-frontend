@@ -10,10 +10,10 @@ interface ApiEnvelope<T = unknown> {
   [key: string]: unknown;
 }
 
-async function request<T = unknown>(
+async function requestRaw<T = unknown>(
   config: AxiosRequestConfig,
   fallbackMessage = "Request failed.",
-): Promise<T> {
+): Promise<ApiEnvelope<T>> {
   let response;
   try {
     response = await apiClient.request<ApiEnvelope<T>>(config);
@@ -33,9 +33,17 @@ async function request<T = unknown>(
     } as apiError;
   }
 
+  return response.data;
+}
+
+async function request<T = unknown>(
+  config: AxiosRequestConfig,
+  fallbackMessage = "Request failed.",
+): Promise<T> {
+  const envelope = await requestRaw<T>(config, fallbackMessage);
   // Unwrap the { success, data } envelope — endpoints that only return a
   // message (no `data`) fall back to the envelope itself.
-  return (response.data?.data ?? response.data) as T;
+  return (envelope?.data ?? envelope) as T;
 }
 
 export const api = {
@@ -44,6 +52,15 @@ export const api = {
     config?: AxiosRequestConfig,
     fallbackMessage?: string,
   ) => request<T>({ ...config, method: "GET", url }, fallbackMessage),
+
+  // Like `get`, but returns the full `{ success, data, ...siblingFields }`
+  // envelope instead of just `data` — use this for endpoints where the
+  // backend sends extra info alongside `data`, like a `pagination` object.
+  getEnvelope: <T = unknown>(
+    url: string,
+    config?: AxiosRequestConfig,
+    fallbackMessage?: string,
+  ) => requestRaw<T>({ ...config, method: "GET", url }, fallbackMessage),
 
   post: <T = unknown>(
     url: string,
