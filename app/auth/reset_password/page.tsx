@@ -1,6 +1,10 @@
+import { Suspense } from "react";
 import { ResetPassword } from "@/feature/auth/resetPassword";
 
-
 export default function ResetPasswordPage() {
-  return <ResetPassword />;
+  return (
+    <Suspense fallback={null}>
+      <ResetPassword />
+    </Suspense>
+  );
 };
