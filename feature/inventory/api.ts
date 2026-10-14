@@ -105,6 +105,49 @@ export interface CreateInventoryItemPayload {
   status?: string;
 }
 
+export interface BulkImportError {
+  row: number;
+  message: string;
+}
+
+export interface BulkImportResult {
+  items: InventoryItem[];
+  imported: number;
+  skipped: number;
+  errors: BulkImportError[];
+}
+
+export function useBulkImportInventory(
+  options?: UseMutationOptions<BulkImportResult, apiError, File>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      // apiClient sets a default `Content-Type: application/json` header,
+      // and axios does not override an already-present header for FormData
+      // bodies — so without this, the request goes out as JSON and the
+      // backend never sees a real multipart body (multer finds no file).
+      // Setting it to `undefined` here removes it so the browser can add
+      // the correct `multipart/form-data; boundary=...` itself.
+      return api.post<BulkImportResult>(
+        "/inventory/bulk-import",
+        formData,
+        { headers: { "Content-Type": undefined } },
+        "Could not import the file. Check the format and try again.",
+      );
+    },
+    ...options,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      // Refetch the list so newly-imported items show up without a manual reload.
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      options?.onSuccess?.(data, variables, onMutateResult, context);
+    },
+  });
+}
+
 export function useCreateInventoryItem(
   options?: UseMutationOptions<InventoryItem, apiError, CreateInventoryItemPayload>,
 ) {

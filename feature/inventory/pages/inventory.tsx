@@ -2,27 +2,21 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
-import { DataTable, type Column } from "@/components/ui/DataTable";
-import { Badge } from "@/components/ui/Badge";
+import { DataTable } from "@/components/ui/DataTable";
 import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
-import { Field, Input } from "@/components/ui/Form";
 import { StatCard } from "@/components/ui/StatCard";
 import { formatNaira } from "@/data/pricing";
-import {
-  useInventoryList,
-  useCreateInventoryItem,
-  type InventoryItem,
-} from "@/feature/inventory/api";
+import { useInventoryList, useCreateInventoryItem } from "@/feature/inventory/api";
+import { AddItemModal } from "@/feature/inventory/components/AddItemModal";
+import { BulkImportModal } from "@/feature/inventory/components/BulkImportModal";
+import { inventoryColumns, type InventoryRow } from "@/feature/inventory/components/columns";
 
 const PAGE_SIZE = 20;
-
-// DataTable requires each row to have an `id`; the backend uses `_id`.
-type InventoryRow = InventoryItem & { id: string };
 
 export default function InventoryPage() {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
@@ -73,46 +67,6 @@ export default function InventoryPage() {
     });
   }
 
-  const columns: Column<InventoryRow>[] = [
-    {
-      header: "Product",
-      accessor: (r) => (
-        <div>
-          <p className="font-medium text-ink">{r.name}</p>
-          {r.description && (
-            <p className="font-mono text-[11px] text-ink-400">{r.description}</p>
-          )}
-        </div>
-      ),
-    },
-    { header: "Category", accessor: (r) => r.category ?? "—" },
-    { header: "Unit price", accessor: (r) => formatNaira(r.price), align: "right" },
-    {
-      header: "Quantity",
-      accessor: (r) => (
-        <span
-          className={
-            r.reorderLevel && r.quantity <= r.reorderLevel
-              ? "font-semibold text-amber-dark"
-              : "text-ink-700"
-          }
-        >
-          {r.quantity}
-        </span>
-      ),
-      align: "right",
-    },
-    {
-      header: "Status",
-      accessor: (r) =>
-        r.reorderLevel && r.quantity <= r.reorderLevel ? (
-          <Badge tone="warning">Reorder now</Badge>
-        ) : (
-          <Badge tone="success">{r.status ?? "In stock"}</Badge>
-        ),
-    },
-  ];
-
   return (
     <div>
       <PageHeader
@@ -138,7 +92,7 @@ export default function InventoryPage() {
       )}
 
       <DataTable
-        columns={columns}
+        columns={inventoryColumns}
         rows={rows}
         emptyLabel={isLoading ? "Loading inventory…" : "No inventory items yet."}
       />
@@ -165,47 +119,19 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add product">
-        <form onSubmit={handleAdd} className="flex flex-col gap-4">
-          <Field label="Product name" htmlFor="name">
-            <Input id="name" name="name" required placeholder="e.g. Vegetable Oil (5L)" />
-          </Field>
-          <Field label="Description" htmlFor="description">
-            <Input id="description" name="description" placeholder="e.g. 5-litre bottle, refined" />
-          </Field>
-          <Field label="Category" htmlFor="category">
-            <Input id="category" name="category" placeholder="e.g. Grocery" />
-          </Field>
-          <Field label="Unit price (₦)" htmlFor="price">
-            <Input id="price" name="price" type="number" required min={0} placeholder="4500" />
-          </Field>
-          <Field label="Quantity" htmlFor="quantity">
-            <Input id="quantity" name="quantity" type="number" required min={0} placeholder="50" />
-          </Field>
-          <Field label="Reorder level" htmlFor="reorderLevel">
-            <Input id="reorderLevel" name="reorderLevel" type="number" min={0} placeholder="15" />
-          </Field>
-          <Field label="Reorder quantity" htmlFor="reorderQuantity">
-            <Input id="reorderQuantity" name="reorderQuantity" type="number" min={0} placeholder="50" />
-          </Field>
-          <Field label="Location" htmlFor="location">
-            <Input id="location" name="location" placeholder="e.g. Main Store" />
-          </Field>
-          <Field label="Supplier" htmlFor="supplier">
-            <Input id="supplier" name="supplier" placeholder="e.g. Dangote Foods" />
-          </Field>
+      <AddItemModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleAdd}
+        isSubmitting={isCreating}
+        error={formError}
+        onBulkImportClick={() => {
+          setModalOpen(false);
+          setBulkModalOpen(true);
+        }}
+      />
 
-          {formError && (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 font-body text-xs text-red-700">
-              {formError}
-            </p>
-          )}
-
-          <Button type="submit" className="mt-2 w-full" disabled={isCreating}>
-            {isCreating ? "Adding..." : "Add product"}
-          </Button>
-        </form>
-      </Modal>
+      <BulkImportModal open={bulkModalOpen} onClose={() => setBulkModalOpen(false)} />
     </div>
   );
 }

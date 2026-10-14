@@ -1,4 +1,4 @@
-import SalesPage from "@/feature/dashboard/pages/sales";
+import SalesPage from "@/feature/sales/pages/sales";
 
 export default function Sales() {
   return <SalesPage />;

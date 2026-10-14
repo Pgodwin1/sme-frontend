@@ -8,7 +8,7 @@ import { Topbar } from "@/components/app/Topbar";
 import { ROUTES } from "@/config/routes";
 import type { ModuleKey } from "@/data/modules";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());

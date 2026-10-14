@@ -23,11 +23,11 @@ interface NavItem {
 
 export const navItems: NavItem[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { key: "inventory", label: "Inventory", href: "/dashboard/inventory", icon: Package },
-  { key: "sales", label: "Sales", href: "/dashboard/sales", icon: TrendingUp },
-  { key: "hr", label: "Employees", href: "/dashboard/employees", icon: Users },
-  { key: "payroll", label: "Payroll", href: "/dashboard/payroll", icon: Wallet },
-  { key: "crm", label: "CRM", href: "/dashboard/crm", icon: Contact },
+  { key: "inventory", label: "Inventory", href: "/inventory", icon: Package },
+  { key: "sales", label: "Sales", href: "/sales", icon: TrendingUp },
+  { key: "hr", label: "Employees", href: "/employees", icon: Users },
+  { key: "payroll", label: "Payroll", href: "/payroll", icon: Wallet },
+  { key: "crm", label: "CRM", href: "/crm", icon: Contact },
 ];
 
 export function Sidebar({ modules }: { modules: ModuleKey[] }) {
